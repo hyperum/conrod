@@ -836,8 +836,8 @@ impl<'a> Widget for TextEdit<'a> {
             let cursor_rect = ui.rect_of(state.ids.cursor).unwrap();
             if prev_cursor_rect != Some(cursor_rect) {
                 use graph::Walker;
-                let mut scrollable_parents = ui.widget_graph().scrollable_y_parent_recursion(id);
-                if let Some(parent_id) = scrollable_parents.next_node(ui.widget_graph()) {
+                let mut scrollable_y_parents = ui.widget_graph().scrollable_y_parent_recursion(id);
+                if let Some(parent_id) = scrollable_y_parents.next_node(ui.widget_graph()) {
                     if let Some(parent_rect) = ui.rect_of(parent_id) {
                         // If cursor is below, scroll down.
                         if cursor_rect.bottom() < parent_rect.bottom() {
@@ -847,6 +847,21 @@ impl<'a> Widget for TextEdit<'a> {
                         } else if cursor_rect.top() > parent_rect.top() {
                             let distance = cursor_rect.top() - parent_rect.top();
                             ui.scroll_widget(parent_id, [0.0, -distance]);
+                        }
+                    }
+                }
+                let mut scrollable_x_parents = ui.widget_graph().scrollable_x_parent_recursion(id);
+                if let Some(parent_id) = scrollable_x_parents.next_node(ui.widget_graph()) {
+                    if let Some(parent_rect) = ui.rect_of(parent_id) {
+                        // If cursor is left, scroll left.
+                        if cursor_rect.left() < parent_rect.left() {
+                            let distance = cursor_rect.left() - parent_rect.left();
+                            ui.scroll_widget(parent_id, [distance, 0.0]);
+                        }
+                        // If cursor is right, scroll right.
+                        else if cursor_rect.right() > parent_rect.right() {
+                            let distance = parent_rect.right() - cursor_rect.right();
+                            ui.scroll_widget(parent_id, [-distance, 0.0]);
                         }
                     }
                 }
